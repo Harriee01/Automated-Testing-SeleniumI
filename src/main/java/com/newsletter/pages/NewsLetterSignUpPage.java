@@ -1,21 +1,14 @@
 package com.newsletter.pages;
 
 
-
 import io.qameta.allure.Step;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List;
-
-
-import java.time.Duration;
-import java.util.List;
-
+import java.util.List
 
 //NewsletterSignupPage — Page Object for the newsletter signup single-page app.
 // Single-responsibility: encapsulate UI locators and simple interactions/waits.
@@ -67,6 +60,148 @@ public class NewsLetterSignUpPage {
 
 
 
+    @Step("Open sign-up page: {url}")
+    public NewsletterSignupPage open(String url) {
+        driver.get(url);
+        return this;
+    }
+
+
+
+    @Step("Enter email: {email}")
+    public NewsletterSignupPage enterEmail(String email) {
+        // Wait until input is visible (inline safe wait to avoid test-scoped utils dependency)
+        wait.until(d -> isDisplayedNoThrow(emailInput));
+        emailInput.clear();       // ensure clean state
+        emailInput.sendKeys(email);
+        return this;
+    }
+
+
+
+    @Step("Click Subscribe")
+    public NewsletterSignupPage clickSubscribe() {
+        // Wait until button is visible & enabled (inline safe wait)
+        wait.until(d -> isDisplayedNoThrow(subscribeButton) && isEnabledNoThrow(subscribeButton));
+        subscribeButton.click();
+        return this;
+    }
+
+
+
+    @Step("Click Dismiss message")
+    public NewsletterSignupPage clickDismiss() {
+        // Wait until dismiss is clickable (visible & enabled)
+        wait.until(d -> isDisplayedNoThrow(dismissButton) && isEnabledNoThrow(dismissButton));
+        dismissButton.click();
+        return this;
+    }
+
+
+    // Visibility / State checks
+
+
+    @Step("Is success state visible?")
+    public boolean isSuccessVisible() {
+        return isDisplayedNoThrow(successCard);// WHAT: check card shown; WHY: confirm transition
+    }
+
+
+    @Step("Is form visible?")
+    public boolean isFormVisible() {
+        return isDisplayedNoThrow(formContainer); // WHAT: check form shown; WHY: confirm initial/returned state
+    }
+
+    @Step("Is error message visible?")
+    public boolean isErrorVisible() {
+        return isDisplayedNoThrow(errorMessage); // WHAT: inline validation visible; WHY: invalid/empty input behavior
+    }
+
+    @Step("Get error message text")
+    public String getErrorText() {
+        return isErrorVisible() ? safeGetText(errorMessage) : "";
+    }
+
+    // Try title first if present; otherwise fall back to entire card's visible text
+    @Step("Get success message text (title/body)")
+    public String getSuccessText() {
+        // Prefer a header/title
+        if (successTitles != null) {
+            for (WebElement e : successTitles) {
+                if (isDisplayedNoThrow(e)) {
+                    String t = safeGetText(e);
+                    if (!t.isEmpty()) return t;
+                }
+            }
+        }
+        // Fallback to full card text
+        return isDisplayedNoThrow(successCard) ? safeGetText(successCard) : "";
+    }
+
+
+
+    @Step("Get displayed email inside success card")
+    public String getDisplayedEmailOnSuccess() {
+        if (emailEchoes != null) {
+            for (WebElement e : emailEchoes) {
+                if (isDisplayedNoThrow(e)) {
+                    String t = safeGetText(e);
+                    if (!t.isEmpty() && t.contains("@")) return t;
+                }
+            }
+        }
+        // Fallback heuristic: find first token with '@' in the success text
+        String all = getSuccessText();
+        for (String token : all.split("\\s+")) {
+            if (token.contains("@")) return token.replaceAll("[,;.!?)]*$", "");
+        }
+        return "";
+    }
+
+
+
+    @Step("Wait for success state to be visible")
+    public void waitForSuccessVisible() {
+        wait.until(d -> isDisplayedNoThrow(successCard));
+    }
+
+    @Step("Wait until form is visible")
+    public void waitForFormVisible() {
+        wait.until(d -> isDisplayedNoThrow(formContainer));
+    }
+
+    @Step("Wait for inline error to be visible")
+    public void waitForErrorVisible() {
+        wait.until(d -> isDisplayedNoThrow(errorMessage));
+    }
+
+//local safe checks
+
+
+
+    private boolean isDisplayedNoThrow(WebElement element) {
+        try {
+            return element != null && element.isDisplayed();
+        } catch (NoSuchElementException | StaleElementReferenceException | NullPointerException e) {
+            return false;
+        }
+    }
+
+    private boolean isEnabledNoThrow(WebElement element) {
+        try {
+            return element != null && element.isEnabled();
+        } catch (StaleElementReferenceException | NullPointerException e) {
+            return false;
+        }
+    }
+
+    private String safeGetText(WebElement element) {
+        try {
+            return element.getText().trim();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 
 
 }
