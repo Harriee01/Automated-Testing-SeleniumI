@@ -39,9 +39,9 @@ public final class WaitUtils {
     /**
      * Safe isDisplayed check that shields NoSuchElement and StaleElement exceptions.
      */
-    public static boolean isDisplayedSafe(WebElement el) {
+    public static boolean isDisplayedSafe(WebElement element) {
         try {
-            return el != null && el.isDisplayed();
+            return element != null && element.isDisplayed();
         } catch (NoSuchElementException | StaleElementReferenceException | NullPointerException e) {
             return false;
         }
