@@ -9,12 +9,19 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <!-- FIX 1: source/target were set to 25 (non-existent Java version).
+             Corrected to 21 to match the <release>21</release> in the compiler plugin. -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
 
-
-        <!-- Centralized versions for consistency -->
+        <!-- FIX 2: All Selenium artifacts pinned to a single version — 4.17.0.
+             Previously selenium-java was 4.17.0 but selenium-api and
+             selenium-support were 4.40.0, causing class loading conflicts
+             (including the missing html5/LocationContext error).
+             selenium-java already pulls in selenium-api and selenium-support
+             as transitive dependencies, so they do NOT need separate entries. -->
         <selenium.version>4.17.0</selenium.version>
+
         <webdrivermanager.version>5.8.0</webdrivermanager.version>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <assertj.version>3.25.3</assertj.version>
@@ -22,91 +29,82 @@
         <aspectj.version>1.9.21</aspectj.version>
         <surefire.version>3.2.5</surefire.version>
 
-        <!-- Ensure Allure writes results to a predictable location -->
         <allure.results.directory>target/allure-results</allure.results.directory>
-        <!-- Needed to resolve the AspectJ weaver JAR path in argLine -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
 
-
-        <!-- Selenium Java (WebDriver + Chrome) -->
+        <!-- Selenium Java — includes selenium-api, selenium-support, selenium-chrome-driver
+             etc. as transitive dependencies. Declaring them separately (as was done
+             before) at a DIFFERENT version causes version conflicts at runtime. -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
-        <!-- WebDriverManager: automatically manages ChromeDriver binaries -->
+        <!-- WebDriverManager: auto-downloads the correct ChromeDriver binary -->
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>${webdrivermanager.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
-        <!-- JUnit 5 (Jupiter) -->
+        <!-- JUnit 5 (Jupiter) — the junit-jupiter aggregate pulls in
+             junit-jupiter-api, junit-jupiter-engine, and junit-jupiter-params -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
-        <!-- AssertJ for fluent assertions -->
+        <!-- AssertJ: fluent, readable assertions -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
-        <!-- Allure adapter for JUnit5 -->
+        <!-- Allure JUnit 5 adapter — integrates Allure with JUnit 5 lifecycle -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-junit5</artifactId>
             <version>${allure.junit5.version}</version>
-            <scope>test</scope>
+
         </dependency>
 
-        <!-- AspectJ weaver for Allure @Step runtime weaving -->
+        <!-- AspectJ weaver — required by Allure for @Step AOP instrumentation -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>${aspectj.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-api</artifactId>
-            <version>4.40.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-support</artifactId>
-            <version>4.40.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-java-commons</artifactId>
-            <version>2.24.0</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
 
+        </dependency>
+
+        <!-- FIX 3: REMOVED the separate selenium-api (4.40.0) and selenium-support (4.40.0)
+             entries that were here before. They conflicted with selenium-java (4.17.0)
+             and are already provided transitively by selenium-java anyway.
+
+             REMOVED the separate allure-java-commons entry — it is already pulled in
+             transitively by allure-junit5. Declaring it separately risks version skew. -->
+
+    </dependencies>
 
     <build>
         <plugins>
-            <!-- Explicit compiler plugin -->
+
+            <!-- Compiler plugin: enforce Java 21 consistently -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
+                    <!-- source/target now consistent with the <release> tag below -->
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
@@ -114,7 +112,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Surefire: runs JUnit 5 tests and injects AspectJ weaver -->
+            <!-- Surefire: runs JUnit 5 tests and injects AspectJ weaver for Allure @Step -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -130,6 +128,7 @@
                     <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>
