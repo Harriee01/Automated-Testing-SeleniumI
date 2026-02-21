@@ -8,7 +8,7 @@ import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List
+import java.util.List;
 
 //NewsletterSignupPage — Page Object for the newsletter signup single-page app.
 // Single-responsibility: encapsulate UI locators and simple interactions/waits.
@@ -51,7 +51,7 @@ public class NewsLetterSignUpPage {
     private List<WebElement> emailEchoes;
 
 
-    public NewsletterSignupPage(WebDriver driver) {
+    public NewsLetterSignUpPage(WebDriver driver) {
         this.driver = driver;
         // Use short, explicit waits where interactions expect quick UI transitions
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(5));
@@ -61,7 +61,7 @@ public class NewsLetterSignUpPage {
 
 
     @Step("Open sign-up page: {url}")
-    public NewsletterSignupPage open(String url) {
+    public NewsLetterSignUpPage open(String url) {
         driver.get(url);
         return this;
     }
@@ -69,7 +69,7 @@ public class NewsLetterSignUpPage {
 
 
     @Step("Enter email: {email}")
-    public NewsletterSignupPage enterEmail(String email) {
+    public NewsLetterSignUpPage enterEmail(String email) {
         // Wait until input is visible (inline safe wait to avoid test-scoped utils dependency)
         wait.until(d -> isDisplayedNoThrow(emailInput));
         emailInput.clear();       // ensure clean state
@@ -80,7 +80,7 @@ public class NewsLetterSignUpPage {
 
 
     @Step("Click Subscribe")
-    public NewsletterSignupPage clickSubscribe() {
+    public NewsLetterSignUpPage clickSubscribe() {
         // Wait until button is visible & enabled (inline safe wait)
         wait.until(d -> isDisplayedNoThrow(subscribeButton) && isEnabledNoThrow(subscribeButton));
         subscribeButton.click();
@@ -90,7 +90,7 @@ public class NewsLetterSignUpPage {
 
 
     @Step("Click Dismiss message")
-    public NewsletterSignupPage clickDismiss() {
+    public NewsLetterSignUpPage clickDismiss() {
         // Wait until dismiss is clickable (visible & enabled)
         wait.until(d -> isDisplayedNoThrow(dismissButton) && isEnabledNoThrow(dismissButton));
         dismissButton.click();
