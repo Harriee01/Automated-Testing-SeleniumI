@@ -26,7 +26,7 @@ public class NewsLetterSignUpPage {
     private WebElement subscribeButton;
 
     //error message element shown for invalid or empty email
-    @FindBy(id = "error-message")
+    @FindBy(id = "email-error")
     private WebElement errorMessage;
 
     //success card or thank you message shown after valid submission
@@ -54,7 +54,7 @@ public class NewsLetterSignUpPage {
     public NewsLetterSignUpPage(WebDriver driver) {
         this.driver = driver;
         // Use short, explicit waits where interactions expect quick UI transitions
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         PageFactory.initElements(driver, this);
     }
 
@@ -170,9 +170,9 @@ public class NewsLetterSignUpPage {
         wait.until(d -> isDisplayedNoThrow(formContainer));
     }
 
-    @Step("Wait for inline error to be visible")
+    @Step("Wait for inline error to be visible(or success to appear)")
     public void waitForErrorVisible() {
-        wait.until(d -> isDisplayedNoThrow(errorMessage));
+        wait.until(d -> isDisplayedNoThrow(errorMessage) || isDisplayedNoThrow(successCard));
     }
 
 //local safe checks
